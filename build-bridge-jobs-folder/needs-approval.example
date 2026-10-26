@@ -1,0 +1,9 @@
+v: 3
+id: BB-20260101-001
+from: Build Bridge pickup
+status: needs-approval
+pickup: 2026-01-01T09:00:04-05:00
+returned: 2026-01-01T09:05:09-05:00
+---
+A hands-off pickup run for this job was stopped after no progress for 300 s. Build was most likely waiting for an approval that nobody was there to give. Nothing was retried and the permission mode was not changed. The job is still waiting in outbox. To finish it, open Build yourself and approve, or give the separate auto YES (build-bridge-watchers step 4c). Then run: bb-pickup clear-approval BB-20260101-001
+stop

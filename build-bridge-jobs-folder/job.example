@@ -1,0 +1,8 @@
+v: 3
+id: BB-20260101-001
+from: GrokBot
+to: Build
+priority: normal
+time: 2026-01-01T09:00:00-05:00
+job: Report whether Build is running and list the file names in the outbox folder. Change nothing.
+done-when: A reply file with this id is in the inbox folder.

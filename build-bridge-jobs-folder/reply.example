@@ -1,0 +1,9 @@
+v: 3
+id: BB-20260101-001
+from: Build
+status: done
+pickup: 2026-01-01T09:00:04-05:00
+returned: 2026-01-01T09:01:30-05:00
+---
+Build is running. The outbox holds one file: BB-20260101-001.job. Nothing was changed.
+stop
