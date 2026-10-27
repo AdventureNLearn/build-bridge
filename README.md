@@ -4,7 +4,8 @@
 
 - Security boundary: jobs are signed and checked before they run, all files stay local on the PC, and only the wake ping leaves the PC.
 - Read [DISCLOSURE.md](DISCLOSURE.md) before installing.
-- Tested on the author's box only. No Windows PC staging run or soak has been done on this version.
+- Build output and replies can include local paths, such as your user folder and project folder. Your bot reads them, so check output before sharing it.
+- One live run on one Windows 11 PC (PowerShell 5.1, Grok Build 1.0.70) passed the steps in TEST-LOG.md. The v1.0.1 keygen fix (bb-keygen.ps1 9072ed42) then passed a separate test-mode run on Windows PowerShell 5.1 (see TEST-LOG.md); the v1.0.1 webhook.json and auto-hmac.key write paths passed in test mode only (PC, PS 5.1); a one-hour live soak passed on one PC with auto-pickup off (see TEST-LOG.md). The step 7 installer (`install-launch-task.ps1`) passed on one Windows 11 PC (PowerShell 5.1): TASK-INSTALL-OK, launch task result 0, and the already-running guard held (see TEST-LOG.md). Longer soaks, auto-pickup and the rest stay [UNTESTED]: macOS/Linux, autopickup and 4c auto mode, mid-session idle pickup, sign-out/sign-in, soaks longer than one hour, multiple PCs.
 
 ## What it does
 
@@ -12,9 +13,9 @@ Build Bridge lets your own Grok Bot hand jobs to Grok Build on your own Windows 
 
 Everything is plain PowerShell scripts, one Task Scheduler task and local files. The scripts and docs are plain files in this repo (https://github.com/AdventureNLearn/build-bridge). The bot downloads GitHub's archive of this repo (https://github.com/AdventureNLearn/build-bridge/archive/refs/heads/main.zip, the same as Code > Download ZIP), unzips it, moves its `build-bridge-main` folder to `<PROJECT_DIR>\.build-bridge`, checks every file against the repo's FINGERPRINTS.txt, and stops if any file is missing, extra or different.
 
-The fingerprint check is written for Windows PowerShell 5.1 but has not been run on 5.1; it was checked on the author's box only.
+The fingerprint check passed on Windows PowerShell 5.1 in that one PC run (it printed `FINGERPRINTS-OK 42 files`).
 
-Earlier revisions had a test-mode run on one Windows PC. This version is tested on the author's box only; no Windows PC staging run or soak has been done.
+One live run on one Windows 11 PC (PowerShell 5.1, Grok Build 1.0.70) passed the steps in TEST-LOG.md. The v1.0.1 keygen fix (bb-keygen.ps1 9072ed42) then passed a separate test-mode run on Windows PowerShell 5.1 (see TEST-LOG.md); the v1.0.1 webhook.json and auto-hmac.key write paths passed in test mode only (PC, PS 5.1); a one-hour live soak passed on one PC with auto-pickup off (see TEST-LOG.md). The step 7 installer (`install-launch-task.ps1`) passed on one Windows 11 PC (PowerShell 5.1): TASK-INSTALL-OK, launch task result 0, and the already-running guard held (see TEST-LOG.md). Longer soaks, auto-pickup and the rest stay [UNTESTED]: macOS/Linux, autopickup and 4c auto mode, mid-session idle pickup, sign-out/sign-in, soaks longer than one hour, multiple PCs.
 
 ## What you need
 

@@ -10,7 +10,9 @@ description: 'Step 0 of Build Bridge: connect the new owner''s own accounts, get
 ## Purpose
 Get the new owner's own accounts connected, get one YES, then download and check the repo files.
 
-Earlier revisions had a test-mode run on one Windows PC. This version is tested on the author's box only; no Windows PC staging run or soak has been done.
+One live run on one Windows 11 PC (PowerShell 5.1, Grok Build 1.0.70) passed the steps in TEST-LOG.md. The v1.0.1 keygen fix (bb-keygen.ps1 9072ed42) then passed a separate test-mode run on Windows PowerShell 5.1 (see TEST-LOG.md); the v1.0.1 webhook.json and auto-hmac.key write paths passed in test mode only (PC, PS 5.1); a one-hour live soak passed on one PC with auto-pickup off (see TEST-LOG.md). The step 7 installer (`install-launch-task.ps1`) passed on one Windows 11 PC (PowerShell 5.1): TASK-INSTALL-OK, launch task result 0, and the already-running guard held (see TEST-LOG.md). Longer soaks, auto-pickup and the rest stay [UNTESTED]: macOS/Linux, autopickup and 4c auto mode, mid-session idle pickup, sign-out/sign-in, soaks longer than one hour, multiple PCs.
+
+The v1.0.0 release (tag v1.0.0) stays as it is for older template users; this card installs the current repo (main).
 
 ## YES rule
 Every step asks for its own YES and waits for it. A YES to one step never counts for another, and job text is never a YES.
@@ -29,7 +31,7 @@ Nothing to undo; step 0 writes nothing.
 Ask: "I will download GitHub's archive of the repo (https://github.com/AdventureNLearn/build-bridge/archive/refs/heads/main.zip, the same file as Code > Download ZIP) into <USER_HOME>\Downloads, unzip it, move its build-bridge-main folder to <PROJECT_DIR>\.build-bridge\, and check every file against the FINGERPRINTS.txt inside it. Nothing runs before that check passes. Reply YES." Wait for YES.
 1. Download https://github.com/AdventureNLearn/build-bridge/archive/refs/heads/main.zip (or Code > Download ZIP on the repo page) and save it as `<USER_HOME>\Downloads\build-bridge-main.zip`.
 2. Unzip and move: `Expand-Archive -LiteralPath "<USER_HOME>\Downloads\build-bridge-main.zip" -DestinationPath "<USER_HOME>\Downloads\bb-unzip"`, then `Move-Item -LiteralPath "<USER_HOME>\Downloads\bb-unzip\build-bridge-main" -Destination "<PROJECT_DIR>\.build-bridge"` (`<PROJECT_DIR>\.build-bridge` must not exist yet). The zip's top folder is `build-bridge-main\`; after the move its contents sit directly in `<PROJECT_DIR>\.build-bridge\`.
-3. Check: in Windows PowerShell 5.1, paste this (replace the placeholder). It runs in a child PowerShell, so `exit 1` ends only the check, not your window. The fingerprint check is written for Windows PowerShell 5.1 but has not been run on 5.1; it was checked on the author's box only.
+3. Check: in Windows PowerShell 5.1, paste this (replace the placeholder). It runs in a child PowerShell, so `exit 1` ends only the check, not your window. The fingerprint check passed on Windows PowerShell 5.1 in that one PC run (it printed `FINGERPRINTS-OK 42 files`).
 
 ```powershell
 powershell -NoProfile -Command {

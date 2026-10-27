@@ -2,7 +2,7 @@
 
 Build Bridge is run by an AI assistant (Grok Bot and Grok Build). You approve each step.
 
-Pinned to content tree aef98fff (every file in the package except this statement, the disclosure card, and the files that only list hashes; the CHANGELOG shows how to check it).
+File integrity: check every file against FINGERPRINTS.txt.
 
 **Windows only.** Build Bridge has no Mac or Linux scripts.
 
@@ -10,7 +10,7 @@ Pinned to content tree aef98fff (every file in the package except this statement
 
 Build Bridge lets your own Grok Bot pass signed jobs to Grok Build on your own Windows PC, using PowerShell scripts, a Task Scheduler task, local files and your own Grok Bot's webhook for wake pings.
 
-Earlier revisions had a test-mode run on one Windows PC. This version is tested on the author's box only; no Windows PC staging run or soak has been done.
+One live run on one Windows 11 PC (PowerShell 5.1, Grok Build 1.0.70) passed the steps in TEST-LOG.md. The v1.0.1 keygen fix (bb-keygen.ps1 9072ed42) then passed a separate test-mode run on Windows PowerShell 5.1 (see TEST-LOG.md); the v1.0.1 webhook.json and auto-hmac.key write paths passed in test mode only (PC, PS 5.1); a one-hour live soak passed on one PC with auto-pickup off (see TEST-LOG.md). The step 7 installer (`install-launch-task.ps1`) passed on one Windows 11 PC (PowerShell 5.1): TASK-INSTALL-OK, launch task result 0, and the already-running guard held (see TEST-LOG.md). Longer soaks, auto-pickup and the rest stay [UNTESTED]: macOS/Linux, autopickup and 4c auto mode, mid-session idle pickup, sign-out/sign-in, soaks longer than one hour, multiple PCs.
 
 ### Who is responsible
 - You, the person installing Build Bridge, are responsible for what the agent does on your PC.
@@ -23,7 +23,7 @@ Earlier revisions had a test-mode run on one Windows PC. This version is tested 
 - The scripts and docs are plain files in the repo (https://github.com/AdventureNLearn/build-bridge). The cards carry instructions only, no script text.
 - After its own YES, the bot downloads GitHub's archive of the repo (https://github.com/AdventureNLearn/build-bridge/archive/refs/heads/main.zip) into `<USER_HOME>\Downloads`, unzips it, and moves its `build-bridge-main` folder to `<PROJECT_DIR>\.build-bridge`.
 - It checks every file against FINGERPRINTS.txt. If any file is missing, extra or different, the check prints that file and stops with exit 1, and nothing after it runs.
-- The fingerprint check is written for Windows PowerShell 5.1 but has not been run on 5.1; it was checked on the author's box only.
+- The fingerprint check passed on Windows PowerShell 5.1 in that one PC run (it printed `FINGERPRINTS-OK 42 files`).
 - Only the install files ship.
 
 Placeholders: `<USER_HOME>` is your Windows profile folder. `<PROJECT_DIR>` is your one Build project folder. `https://github.com/AdventureNLearn/build-bridge` is the repo's address. `<BB_ROOT>` is `<USER_HOME>\.buildbridge` (or `BB_HOME`). `<BB_KEYS>` is `<BB_ROOT>-keys`. `<BB_SCANS>` is `<BB_ROOT>-scans`.
@@ -40,7 +40,7 @@ Step and YES names are from the cards.
 | **Step 2, jobs folder.** Makes hidden `<BB_ROOT>` with outbox, inbox, done, rejected, bin, state, logs, keys-public. | Reply **YES**. |
 | **Copy scripts** into `<BB_ROOT>\bin`. | Let it copy, as each card says. |
 | **Step 3, signing key.** Your own RSA-3072 key pair. The private key `<BB_KEYS>\signing-private.dpapi` is sealed with Windows DPAPI for you. The public key is `<BB_ROOT>\keys-public\signing-public.xml`. | Reply **YES**. |
-| **icacls on your own key folder.** No step asks for admin rights, and no script requests elevation. bb-keygen.ps1 runs `icacls <root>-keys /inheritance:r /grant:r *<own SID>:(OI)(CI)F` on it, so only you have access. bb-common.ps1 runs `icacls <file> /inheritance:r /grant:r *<own SID>:F` on each key file it creates there. Both act only on the keys folder and key files under your own home. That this works as a normal user on every Windows PC is (not tested). | Expect no admin or UAC prompt. |
+| **icacls on your own key folder.** No step asks for admin rights, and no script requests elevation. bb-keygen.ps1 runs `icacls <root>-keys /inheritance:r /grant:r *<own SID>:(OI)(CI)F`, then `/remove:g *S-1-5-18 *S-1-5-32-544` and any other non-owner entry, on it while it is still empty (a non-empty folder stops with nothing written), so only you have access. bb-common.ps1 runs `icacls <file> /inheritance:r /grant:r *<own SID>:F` on each key file it creates there. Both act only on the keys folder and key files under your own home. That this works as a normal user on every Windows PC is (not tested). | Expect no admin or UAC prompt. |
 | **Step 4, watchers.** Outbox watcher `bb-watch-outbox.ps1` and reply watcher `bb-watch-inbox.ps1` run hidden. Bad jobs go to `rejected`. State goes in `<BB_ROOT>\state`, logs in `<BB_ROOT>\logs`. The listener `bb-listen.ps1` runs inside Build. Step 4 also replaces `<PROJECT_DIR>` in the copied `bb-pickup.ps1` with your project folder. | Reply **YES**. |
 | **Webhook.** Saves your webhook address and key in `<BB_KEYS>\webhook.json`. Address must be `https://`. Key is typed hidden. The wake ping is only `{"event":"ACTION_REQUIRED","source":"buildbridge"}`. | Get a webhook from your own Grok Bot routine. Run `bb-set-webhook.ps1` yourself and type or paste the address and key. Nothing ships with a key. |
 | **Step 4b, auto pickup. Its own YES. Off until you say YES.** Lets a new job start Build by itself when no session is open, using your launcher. Build's approvals stay on. Flag file `<BB_ROOT>\state\autopickup.on`. A stalled run is stopped and gets one `inbox\<id>.needs-approval` entry and one ping, with no retry. | Reply **YES** to step 4b ("its own YES"). It runs `bb-pickup.ps1 -Enable`. Undo: `-Disable`. Clear a stall alert yourself after your YES. |
@@ -65,10 +65,17 @@ Step and YES names are from the cards.
 | Run things you can't see | bb-status shows what is on. | **Watchers and pickup run hidden** (no window). |
 | Change PowerShell policy | `-ExecutionPolicy Bypass` is per process only. | **`-ExecutionPolicy Bypass` is used** on every script run. |
 
+## Risks
+
+- Build output and replies can include local paths, such as your user folder and project folder. Your bot reads them, so check output before sharing it.
+
 ## Limits
 
+- The launcher does not start the outbox and reply watchers; run `bb-on.ps1` after launch.
+- ExecutionPolicy Bypass: `bb-launch.ps1` and the watchers and scan cards still run PowerShell with `-ExecutionPolicy Bypass` for that one process. This is a known issue, kept as-is in v1.0.1, to be fixed in a later version.
+
 ### Known unknowns
-- Windows PowerShell 5.1: Earlier revisions had a test-mode run on one Windows PC. This version is tested on the author's box only; no Windows PC staging run or soak has been done.
+- Windows PowerShell 5.1: One live run on one Windows 11 PC (PowerShell 5.1, Grok Build 1.0.70) passed the steps in TEST-LOG.md. The v1.0.1 keygen fix (bb-keygen.ps1 9072ed42) then passed a separate test-mode run on Windows PowerShell 5.1 (see TEST-LOG.md); the v1.0.1 webhook.json and auto-hmac.key write paths passed in test mode only (PC, PS 5.1); a one-hour live soak passed on one PC with auto-pickup off (see TEST-LOG.md). The step 7 installer (`install-launch-task.ps1`) passed on one Windows 11 PC (PowerShell 5.1): TASK-INSTALL-OK, launch task result 0, and the already-running guard held (see TEST-LOG.md). Longer soaks, auto-pickup and the rest stay [UNTESTED]: macOS/Linux, autopickup and 4c auto mode, mid-session idle pickup, sign-out/sign-in, soaks longer than one hour, multiple PCs.
 - Windows 5.1 behavior of `Remove-Item` on ACL-locked key files: not known.
 - Live icacls as a normal user: tested in an earlier revision in test mode on the test keys folder; not tested on this version. Not tested: the auto-mode key file (auto-hmac.key).
 - Build deny-list enforcement of the never-push rule: not known.
@@ -135,7 +142,7 @@ Quotes are short and verbatim from xAI policy pages, gathered 2026-10-25. No ver
 
 ## Watchers detail
 
-Moved from the watchers card (step 4). Earlier revisions had a test-mode run on one Windows PC. This version is tested on the author's box only; no Windows PC staging run or soak has been done.
+Moved from the watchers card (step 4). One live run on one Windows 11 PC (PowerShell 5.1, Grok Build 1.0.70) passed the steps in TEST-LOG.md. The v1.0.1 keygen fix (bb-keygen.ps1 9072ed42) then passed a separate test-mode run on Windows PowerShell 5.1 (see TEST-LOG.md); the v1.0.1 webhook.json and auto-hmac.key write paths passed in test mode only (PC, PS 5.1); a one-hour live soak passed on one PC with auto-pickup off (see TEST-LOG.md). The step 7 installer (`install-launch-task.ps1`) passed on one Windows 11 PC (PowerShell 5.1): TASK-INSTALL-OK, launch task result 0, and the already-running guard held (see TEST-LOG.md). Longer soaks, auto-pickup and the rest stay [UNTESTED]: macOS/Linux, autopickup and 4c auto mode, mid-session idle pickup, sign-out/sign-in, soaks longer than one hour, multiple PCs.
 
 ### Stall alert
 - Stall detection was tested in an earlier revision in test mode with a stand-in command, not Build (one-shot mode only; the tab-mode stall stop is not tested).
@@ -162,14 +169,14 @@ Moved from the watchers card (step 4). Earlier revisions had a test-mode run on 
 
 ## Tested on
 
-Earlier revisions had a test-mode run on one Windows PC. This version is tested on the author's box only; no Windows PC staging run or soak has been done.
+One live run on one Windows 11 PC (PowerShell 5.1, Grok Build 1.0.70) passed the steps in TEST-LOG.md. The v1.0.1 keygen fix (bb-keygen.ps1 9072ed42) then passed a separate test-mode run on Windows PowerShell 5.1 (see TEST-LOG.md); the v1.0.1 webhook.json and auto-hmac.key write paths passed in test mode only (PC, PS 5.1); a one-hour live soak passed on one PC with auto-pickup off (see TEST-LOG.md). The step 7 installer (`install-launch-task.ps1`) passed on one Windows 11 PC (PowerShell 5.1): TASK-INSTALL-OK, launch task result 0, and the already-running guard held (see TEST-LOG.md). Longer soaks, auto-pickup and the rest stay [UNTESTED]: macOS/Linux, autopickup and 4c auto mode, mid-session idle pickup, sign-out/sign-in, soaks longer than one hour, multiple PCs.
 
 ## How to remove it
 
 1. Turn it off: `bb-off.ps1 -ProjectDir "<PROJECT_DIR>"`. Check `bb-status.ps1` shows every line `off`.
 2. Reply YES to the rollback, then run `bb-rollback.ps1 -ProjectDir "<PROJECT_DIR>" -Rescan <path to scan.ps1>`. Run the scan from the package or a temp copy, not from `<BB_ROOT>\bin`.
 3. **AGENTS.md check first.** Before bb-off, the task delete or any move, the rollback runs `remove-startup-rule.ps1 -CheckOnly`. It stops if the markers are missing, duplicated, changed or out of order, or if AGENTS.md is missing or would not keep its exact bytes. Then it prints `ROLLBACK-HALTED`, says what to fix, says to run the removal again, exits 7, and changes nothing. The check is skipped only when the project folder has no `AGENTS.md.buildbridge-backup-*` or `-none-*` file, or `remove-startup-rule.ps1` is not in bin. By design, the whole removal stops until AGENTS.md is fixed.
-   **Windows PowerShell 5.1:** on a real PC, rollback runs its child scripts, including the AGENTS.md check and step 6, with Windows PowerShell 5.1 from System32. Earlier revisions had a test-mode run on one Windows PC. This version is tested on the author's box only; no Windows PC staging run or soak has been done.
+   **Windows PowerShell 5.1:** on a real PC, rollback runs its child scripts, including the AGENTS.md check and step 6, with Windows PowerShell 5.1 from System32. One live run on one Windows 11 PC (PowerShell 5.1, Grok Build 1.0.70) passed the steps in TEST-LOG.md. The v1.0.1 keygen fix (bb-keygen.ps1 9072ed42) then passed a separate test-mode run on Windows PowerShell 5.1 (see TEST-LOG.md); the v1.0.1 webhook.json and auto-hmac.key write paths passed in test mode only (PC, PS 5.1); a one-hour live soak passed on one PC with auto-pickup off (see TEST-LOG.md). The step 7 installer (`install-launch-task.ps1`) passed on one Windows 11 PC (PowerShell 5.1): TASK-INSTALL-OK, launch task result 0, and the already-running guard held (see TEST-LOG.md). Longer soaks, auto-pickup and the rest stay [UNTESTED]: macOS/Linux, autopickup and 4c auto mode, mid-session idle pickup, sign-out/sign-in, soaks longer than one hour, multiple PCs.
    Then it undoes steps in reverse: runs off, **deletes** the `\Build Bridge Launch` scheduled task with `schtasks /Delete`, then the step 6 undo:
    - It saves the current AGENTS.md as `AGENTS.md.before-bb-remove-<stamp>`. This copy is kept, not deleted.
    - It removes only the lines from the BEGIN marker through the END marker. Every other byte is kept.

@@ -13,7 +13,7 @@ Make the person's own signing key pair, sign every job, and verify each job befo
 Ask: "Step 3 makes your own key pair. The private half stays in a locked folder only your account can open, `<USER_HOME>\.buildbridge-keys`, which holds the private key, webhook.json and auto-hmac.key, and never goes to chat or Grok Bot's servers. Build only gets the public half, which can check jobs but can't make them. Reply YES." Wait for YES.
 
 Copy this folder's scripts into `<USER_HOME>/.buildbridge/bin/`, then:
-- Windows: `bb-keygen.ps1`. RSA-3072, private key sealed with Windows DPAPI for this user and folder ACL set to the user only (`icacls /inheritance:r /grant:r`). Public key `keys-public/signing-public.xml`. Not tested: the key-pair form is new; the reference setup used a different signing form. Same DPAPI and folder pattern.
+- Windows: `bb-keygen.ps1`. RSA-3072, private key sealed with Windows DPAPI for this user and folder ACL set to the user only (`icacls /inheritance:r /grant:r`, then `/remove:g *S-1-5-18 *S-1-5-32-544` and any other non-owner entry, on the empty folder only; a folder with any entry stops (exit 3) with nothing written). Public key `keys-public/signing-public.xml`. Not tested: the key-pair form is new; the reference setup used a different signing form. Same DPAPI and folder pattern.
 Never `cat`, print, upload or paste the private key. Don't read it to "check" it; the check below is enough.
 
 ## Check
