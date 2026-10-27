@@ -73,11 +73,20 @@ function Get-BBHmacHex([string]$KeyPath, [string]$DataPath) {
     $m = $h.ComputeHash([System.IO.File]::ReadAllBytes($DataPath)); $h.Dispose()
     return ((@($m) | ForEach-Object { $_.ToString("x2") }) -join "")
 }
-# Owner-only ACL on one file: drop inherited entries, grant only the current user (by SID) Full control. [UNTESTED live]
+# Owner-only ACL on one file: drop inherited entries, grant only the current user (by SID) Full control,
+# and remove the explicit SYSTEM (S-1-5-18) and Administrators (S-1-5-32-544) entries plus any other non-owner SID.
+# (v1.0.1: /inheritance:r alone keeps explicit SYSTEM/Administrators entries on a normal PC.)
 function Set-BBOwnerOnlyAcl([string]$Path) {
     $sid = [System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value
     & icacls.exe $Path /inheritance:r /grant:r ("*" + $sid + ":F") | Out-Null
-    return ($LASTEXITCODE -eq 0)
+    if ($LASTEXITCODE -ne 0) { return $false }
+    & icacls.exe $Path /remove:g "*S-1-5-18" "*S-1-5-32-544" | Out-Null
+    if ($LASTEXITCODE -ne 0) { return $false }
+    try {
+        $other = @((Get-Acl -LiteralPath $Path).GetAccessRules($true, $true, [System.Security.Principal.SecurityIdentifier]) | ForEach-Object { $_.IdentityReference.Value } | Where-Object { $_ -ne $sid } | Sort-Object -Unique)
+    } catch { return $false }
+    foreach ($o in $other) { & icacls.exe $Path /remove:g ("*" + $o) | Out-Null; if ($LASTEXITCODE -ne 0) { return $false } }
+    return $true
 }
 # Verify: inheritance off, exactly one Allow rule, for the current user's SID, with FullControl. [UNTESTED live]
 function Test-BBOwnerOnlyAcl([string]$Path) {

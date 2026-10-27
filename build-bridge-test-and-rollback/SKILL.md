@@ -35,7 +35,7 @@ Live checks for the test log. Run them by hand on Windows and write each result 
 - Example (PowerShell): `$env:BB_TEST = "1"; $env:BB_HOME = "<TEST_DIR>\.buildbridge"`, then `bb-selftest.ps1`.
 
 ### Windows PowerShell 5.1
-- Earlier revisions had a test-mode run on one Windows PC. This version is tested on the author's box only; no Windows PC staging run or soak has been done. The earlier run used Windows PowerShell 5.1 in test mode, including the watchers round trip and hands-off pickup without Build doing a job. Build itself starting and finishing a job, and whether Build enforces its deny list, are not tested yet.
+- One live run on one Windows 11 PC (PowerShell 5.1, Grok Build 1.0.70) passed the steps in TEST-LOG.md. The v1.0.1 keygen fix (bb-keygen.ps1 9072ed42) then passed a separate test-mode run on Windows PowerShell 5.1 (see TEST-LOG.md); the v1.0.1 webhook.json and auto-hmac.key write paths passed in test mode only (PC, PS 5.1); a one-hour live soak passed on one PC with auto-pickup off (see TEST-LOG.md). The step 7 installer (`install-launch-task.ps1`) passed on one Windows 11 PC (PowerShell 5.1): TASK-INSTALL-OK, launch task result 0, and the already-running guard held (see TEST-LOG.md). Longer soaks, auto-pickup and the rest stay [UNTESTED]: macOS/Linux, autopickup and 4c auto mode, mid-session idle pickup, sign-out/sign-in, soaks longer than one hour, multiple PCs. The earlier run used Windows PowerShell 5.1 in test mode, including the watchers round trip and hands-off pickup without Build doing a job. Build itself starting and finishing a job, and whether Build enforces its deny list, are not tested yet.
 
 ## Check
 The self-test pass lines below, the live checks, and `SCAN-MATCH` at the end of the rollback drill.

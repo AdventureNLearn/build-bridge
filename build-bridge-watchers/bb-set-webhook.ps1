@@ -30,5 +30,14 @@ try { $key = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($ptr) } finally 
 $header = Read-Host "Header name (press Enter for Authorization: Bearer)"
 $obj = @{ url = $url; key = $key }
 if ($header) { $obj.header = $header }
-[System.IO.File]::WriteAllText((Join-Path $keys "webhook.json"), ($obj | ConvertTo-Json -Compress), (New-Object System.Text.UTF8Encoding $false))
+# v1.0.1: fail closed. The file is created empty, made owner-only (SYSTEM, Administrators and any other non-owner
+# entry removed) and verified BEFORE the secret is written.
+$bbc = Join-Path $PSScriptRoot "bb-common.ps1"
+if (-not (Test-Path -LiteralPath $bbc)) { $bbc = [System.IO.Path]::Combine($PSScriptRoot, "..", "build-bridge-signing", "bb-common.ps1") }
+. $bbc
+$whPath = Join-Path $keys "webhook.json"
+[System.IO.File]::WriteAllText($whPath, "")
+if (-not (Set-BBOwnerOnlyAcl $whPath) -or -not (Test-BBOwnerOnlyAcl $whPath)) { Remove-Item -LiteralPath $whPath -Force -ErrorAction SilentlyContinue; throw "could not make webhook.json owner-only (nothing saved)" }
+[System.IO.File]::WriteAllText($whPath, ($obj | ConvertTo-Json -Compress), (New-Object System.Text.UTF8Encoding $false))
+if (-not (Test-BBOwnerOnlyAcl $whPath)) { Remove-Item -LiteralPath $whPath -Force -ErrorAction SilentlyContinue; throw "webhook.json is not owner-only after writing (deleted)" }
 Write-Output "WEBHOOK-SAVED"
