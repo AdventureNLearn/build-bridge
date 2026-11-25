@@ -78,6 +78,10 @@ The disclosure card (`disclosure`) is a short summary; [DISCLOSURE.md](DISCLOSUR
 
 Provided as is, no support, use at your own risk.
 
+## License
+
+MIT. See [LICENSE](LICENSE).
+
 ## Version
 
-Version 1.0
+Version 1.0.1
