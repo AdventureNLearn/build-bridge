@@ -80,4 +80,4 @@ Provided as is, no support, use at your own risk.
 
 ## Version
 
-Version 1.0
+Version 1.0.1
